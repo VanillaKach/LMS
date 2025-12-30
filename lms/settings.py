@@ -5,6 +5,7 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = []
@@ -20,7 +21,19 @@ INSTALLED_APPS = [
     'users',
     'materials',
     'django_filters',
+    'drf_yasg',
 ]
+
+if DEBUG:
+    SWAGGER_SETTINGS = {
+        'SECURITY_DEFINITIONS': {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header'
+            }
+        }
+    }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

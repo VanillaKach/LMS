@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .paginators import LessonPagination, CoursePagination
+from .services import create_stripe_product, create_stripe_price, create_checkout_session
+
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
@@ -72,3 +74,27 @@ class SubscriptionView(APIView):
             message = 'подписка добавлена'
 
         return Response({"message": message})
+
+
+class PaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, course_id):
+        course = get_object_or_404(Course, id=course_id)
+        product_id = create_stripe_product(course.title, course.description)
+        price_id = create_stripe_price(product_id, 1000)  # 1000 = 10.00$
+        success_url = 'http://127.0.0.1:8000/success/'
+        cancel_url = 'http://127.0.0.1:8000/cancel/'
+        url, session_id = create_checkout_session(price_id, success_url, cancel_url)
+
+        # Сохраняем в модель Payment
+        from users.models import Payment
+        Payment.objects.create(
+            user=request.user,
+            course=course,
+            amount=course.price,
+            payment_method='transfer',
+            stripe_session_id=session_id
+        )
+
+        return Response({'url': url})
