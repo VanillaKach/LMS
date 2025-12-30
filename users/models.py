@@ -14,6 +14,7 @@ class Payment(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Оплаченный урок")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма оплаты")
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, verbose_name="Способ оплаты")
+    stripe_session_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="ID сессии Stripe")
 
     def __str__(self):
         return f"{self.user.email} - {self.amount}"
